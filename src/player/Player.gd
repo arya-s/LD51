@@ -12,6 +12,7 @@ onready var label = $Label
 onready var coyote_jump_timer = $CoyoteJumpTimer
 onready var variable_jump_timer = $VariableJumpTimer
 onready var jump_buffer_timer = $JumpBufferTimer
+onready var force_move_x_timer = $ForceMoveXTimer
 
 # raycasts
 onready var wall_horizontal_ray_casts = $WallHorizontalRayCasts
@@ -36,30 +37,38 @@ export(int) var FALL_MAX_ACCELERATION = 300
 export(float) var AUTO_JUMP_TIMER = 0.1
 export(int) var UPWARD_CORNER_CORRECTION = 4
 export(int) var CEILING_VARIABLE_JUMP = 0.05
+export(int) var FAST_MAX_FALL = 240
+export(int) var FAST_MAX_ACCELERATION = 300
 
 
 var WALL_SLIDE_TIME = 1.2
 
 var facing = NEUTRAL
+var force_move_x_direction = NEUTRAL
 var motion = Vector2.ZERO
 var max_fall = FALL_MAX_SPEED
 var variable_jump_speed = 0
-var was_in_air = false
 var was_on_floor = false
 var wall_slide_dir = NEUTRAL
 var wall_slide_timer = WALL_SLIDE_TIME
-
-func _process(delta):
-	update_sprite(delta)
+var last_speed_y = 0
 
 func _physics_process(delta: float):
-#	label.text = str(position)
+	last_speed_y = motion.y
 	var input_vector = get_input_vector()
+	
+	# if we did a walljump this timer is set
+	# if the timer is still running we take away control
+	# from the player and force them into that direction
+	if force_move_x_timer.time_left > 0:
+		input_vector.x = force_move_x_direction
+	
 	facing = get_facing(input_vector)
 
 	apply_horizontal_force(input_vector, delta)
 	apply_vertical_force(input_vector, delta)
 	move(input_vector)
+	update_sprite(delta)
 	
 func get_facing(input_vector: Vector2) -> int:
 	var direction = sign(input_vector.x)
@@ -134,6 +143,10 @@ func wall_jump(direction: int) -> void:
 	variable_jump_timer.start()
 	wall_slide_timer = WALL_SLIDE_TIME
 	
+	if sign(motion.x) != 0:
+		force_move_x_direction = direction
+		force_move_x_timer.start()
+
 	motion.x = direction * WALL_JUMP_HORIZONTAL_BOOST
 	motion.y = JUMP_FORCE
 	variable_jump_speed = motion.y
@@ -144,8 +157,14 @@ func move(input_vector: Vector2) -> void:
 	was_on_floor = is_on_floor()
 	
 	motion = move_and_slide(motion, Vector2.UP)
-
+	
+	if not was_on_floor and is_on_floor():
+		var squish_amount = min(last_speed_y / FAST_MAX_FALL, 1)
+		sprite.scale.x = lerp(1, 1.6, squish_amount)
+		sprite.scale.y = lerp(1, 0.4, squish_amount)
+	
 	if is_on_floor():
+		# squish the sprite the faster we fall
 		wall_slide_timer = WALL_SLIDE_TIME
 		coyote_jump_timer.start()
 		

@@ -4,7 +4,7 @@
 [ext_resource path="res://src/player/Player.gd" type="Script" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 3.95, 5.5 )
+extents = Vector2( 3.5, 5.5 )
 
 [node name="Player" type="KinematicBody2D"]
 collision_mask = 2
@@ -28,6 +28,10 @@ one_shot = true
 
 [node name="JumpBufferTimer" type="Timer" parent="."]
 wait_time = 0.1
+one_shot = true
+
+[node name="ForceMoveXTimer" type="Timer" parent="."]
+wait_time = 0.16
 one_shot = true
 
 [node name="Label" type="Label" parent="."]
