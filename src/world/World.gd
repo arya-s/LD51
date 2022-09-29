@@ -1,6 +1,5 @@
 extends Node
 
-onready var label = $Label
 onready var tilemap = $SolidTilemap
 
 func _ready():

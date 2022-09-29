@@ -14,10 +14,6 @@ onready var variable_jump_timer = $VariableJumpTimer
 onready var jump_buffer_timer = $JumpBufferTimer
 onready var force_move_x_timer = $ForceMoveXTimer
 
-# raycasts
-onready var wall_horizontal_ray_casts = $WallHorizontalRayCasts
-onready var collider_horizontal_ray_casts = $ColliderHorizontalRayCasts
-
 # player
 onready var sprite = $Sprite
 
@@ -27,6 +23,7 @@ export(int) var HALF_GRAVITY_THRESHOLD = 40
 export(int) var RUN_ACCELERATION = 1000
 export(int) var RUN_FRICTION = 400
 export(int) var RUN_MAX_SPEED = 90
+export(int) var DUCK_FRICTION = 500
 export(int) var JUMP_FORCE = -105
 export(int) var JUMP_HORIZONTAL_BOOST = 40
 export(int) var WALL_JUMP_HORIZONTAL_BOOST = RUN_MAX_SPEED + JUMP_HORIZONTAL_BOOST
@@ -36,14 +33,14 @@ export(int) var FALL_MAX_SPEED = 160
 export(int) var FALL_MAX_ACCELERATION = 300
 export(float) var AUTO_JUMP_TIMER = 0.1
 export(int) var UPWARD_CORNER_CORRECTION = 4
-export(int) var CEILING_VARIABLE_JUMP = 0.05
-export(int) var FAST_MAX_FALL = 240
-export(int) var FAST_MAX_ACCELERATION = 300
+export(float) var CEILING_VARIABLE_JUMP = 0.05
+export(int) var FAST_FALL_MAX_SPEED = 240
+export(int) var FAST_FALL_MAX_ACCELERATION = 300
 
 
 var WALL_SLIDE_TIME = 1.2
 
-var facing = NEUTRAL
+var facing = RIGHT
 var force_move_x_direction = NEUTRAL
 var motion = Vector2.ZERO
 var max_fall = FALL_MAX_SPEED
@@ -55,6 +52,7 @@ var last_speed_y = 0
 
 func _physics_process(delta: float):
 	last_speed_y = motion.y
+	
 	var input_vector = get_input_vector()
 	
 	# if we did a walljump this timer is set
@@ -63,20 +61,21 @@ func _physics_process(delta: float):
 	if force_move_x_timer.time_left > 0:
 		input_vector.x = force_move_x_direction
 	
-	facing = get_facing(input_vector)
-
+	update_facing(input_vector)
 	apply_horizontal_force(input_vector, delta)
 	apply_vertical_force(input_vector, delta)
 	move(input_vector)
-	update_sprite(delta)
+	update_sprite(input_vector, delta)
 	
-func get_facing(input_vector: Vector2) -> int:
+func update_facing(input_vector: Vector2) -> void:
 	var direction = sign(input_vector.x)
-	return direction if direction != 0 else facing
+	facing = direction if direction != 0 else facing
+	sprite.flip_h = true if facing == LEFT else false
 	
 func get_input_vector():
 	var input_vector = Vector2.ZERO
 	input_vector.x = Input.get_action_strength("right") - Input.get_action_strength("left")
+	input_vector.y = Input.get_action_strength("down") - Input.get_action_strength("up")
 	
 	return input_vector
 
@@ -89,9 +88,22 @@ func apply_horizontal_force(input_vector: Vector2, delta: float) -> void:
 		motion.x = move_toward(motion.x, input_vector.x * RUN_MAX_SPEED, RUN_ACCELERATION * run_multiplier * delta)
 	
 func apply_vertical_force(input_vector: Vector2, delta: float) -> void:
-	if not is_on_floor():
-		max_fall = move_toward(max_fall, FALL_MAX_SPEED, FALL_MAX_ACCELERATION * delta)
+	var fm = FALL_MAX_SPEED
+	var ffm = FAST_FALL_MAX_SPEED
+	
+	# if we're pressing down, fall faster
+	if input_vector.y == 1 and motion.y >= fm:
+		max_fall = move_toward(max_fall, ffm, FAST_FALL_MAX_ACCELERATION * delta)
+		var half = fm + (ffm - fm) * 0.5
 		
+		if motion.y >= half:
+			var sprite_lerp = min(1, (motion.y - half) / (ffm - half))
+			sprite.scale.x = lerp(1, 0.5, sprite_lerp)
+			sprite.scale.y = lerp(1, 1.5, sprite_lerp)
+	else:
+		max_fall = move_toward(max_fall, fm, FAST_FALL_MAX_ACCELERATION * delta)
+	
+	if not is_on_floor():
 		var maximum = max_fall
 		
 		if sign(motion.x) == facing and sign(input_vector.y) != 1:
@@ -159,12 +171,11 @@ func move(input_vector: Vector2) -> void:
 	motion = move_and_slide(motion, Vector2.UP)
 	
 	if not was_on_floor and is_on_floor():
-		var squish_amount = min(last_speed_y / FAST_MAX_FALL, 1)
+		var squish_amount = min(last_speed_y / FAST_FALL_MAX_SPEED, 1)
 		sprite.scale.x = lerp(1, 1.6, squish_amount)
 		sprite.scale.y = lerp(1, 0.4, squish_amount)
 	
 	if is_on_floor():
-		# squish the sprite the faster we fall
 		wall_slide_timer = WALL_SLIDE_TIME
 		coyote_jump_timer.start()
 		
@@ -189,7 +200,7 @@ func move(input_vector: Vector2) -> void:
 		if variable_jump_timer.time_left < variable_jump_timer.wait_time - CEILING_VARIABLE_JUMP:
 			variable_jump_timer.stop()
 
-func update_sprite(delta: float) -> void:
+func update_sprite(_input_vector: Vector2, delta: float) -> void:
 	# Tween sprite scale back to 1
 	sprite.scale.x = move_toward(sprite.scale.x, 1.0, 1.75 * delta)
 	sprite.scale.y = move_toward(sprite.scale.y, 1.0, 1.75 * delta)
@@ -197,7 +208,7 @@ func update_sprite(delta: float) -> void:
 func can_wall_jump(direction: int) -> bool:
 	return test_move(get_transform(), Vector2(WALL_CHECK_DISTANCE * direction, 0))
 	
-func collide_check(x: int, y: int = 0) -> bool:
+func collide_check(x: int = 0, y: int = 0) -> bool:
 	return test_move(get_transform(), Vector2(x, y))
 
 func corner_check(x: int) -> bool:
