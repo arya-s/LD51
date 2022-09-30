@@ -6,6 +6,7 @@ enum {
 	RIGHT = 1
 }
 
+onready var camera = $Camera
 onready var label = $Label
 
 # timers
@@ -213,3 +214,15 @@ func collide_check(x: int = 0, y: int = 0) -> bool:
 
 func corner_check(x: int) -> bool:
 	return test_move(get_transform().translated(Vector2(x, 0)), Vector2.UP)
+
+func update_camera(room):
+	var collider = room.get_node("Collider")
+	var size = collider.shape.extents * 2
+	
+	camera.limit_left = collider.global_position.x - size.x / 2
+	camera.limit_top = collider.global_position.y - size.y / 2
+	camera.limit_right = camera.limit_left + size.x
+	camera.limit_bottom = camera.limit_top + size.y
+
+func _on_RoomDetector_area_entered(room: Area2D):
+	update_camera(room)

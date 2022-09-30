@@ -11,8 +11,12 @@ config_version=4
 [application]
 
 config/name="Ld 51"
-run/main_scene="res://src/world/World.tscn"
+run/main_scene="res://src/game/Game.tscn"
 config/icon="res://icon.png"
+
+[autoload]
+
+global="*res://src/global/Global.gd"
 
 [display]
 
@@ -100,6 +104,7 @@ ui_fullscreen={
 
 2d_physics/layer_1="player"
 2d_physics/layer_2="tilemap"
+2d_physics/layer_7="room"
 
 [physics]
 
