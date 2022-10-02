@@ -1,23 +1,52 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=12 format=2]
 
-[ext_resource path="res://src/world/tilemaps/SolidTilemap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://src/player/Player.tscn" type="PackedScene" id=2]
 [ext_resource path="res://src/world/levels/RoomShape.tscn" type="PackedScene" id=3]
 [ext_resource path="res://src/proto/Clock.tscn" type="PackedScene" id=4]
 [ext_resource path="res://src/bird/BirdSpawner.tscn" type="PackedScene" id=5]
 [ext_resource path="res://src/world/levels/Level.gd" type="Script" id=6]
 [ext_resource path="res://src/world/levels/DustParticles.tscn" type="PackedScene" id=7]
+[ext_resource path="res://static/moon.png" type="Texture" id=8]
+[ext_resource path="res://static/moon_glow.png" type="Texture" id=9]
+[ext_resource path="res://src/ui/UI.tscn" type="PackedScene" id=10]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform sampler2D emission_teture;
+uniform vec4 glow_color : hint_color = vec4(1.0);
+
+void fragment()
+{
+	vec4 current_color = texture(TEXTURE, UV); // what's our current sprite pixel
+	vec4 emission_color = texture(emission_teture, UV); // what's our current emission pixel
+	
+	if(emission_color.r > 0.0) {
+		COLOR = (emission_color + glow_color) // add brightness corrosponding with the emission pixel
+	} else {
+		COLOR = current_color; // we arent over an emission pixel leave alone
+	}
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/glow_color = Color( 1, 0, 0, 1 )
+shader_param/emission_teture = ExtResource( 9 )
 
 [node name="Level" type="Node"]
 script = ExtResource( 6 )
 
 [node name="CPUParticles2D" parent="." instance=ExtResource( 7 )]
 position = Vector2( 160, 96 )
+initial_velocity = 0.2
 
-[node name="SolidTilemap" parent="." instance=ExtResource( 1 )]
+[node name="Moon" type="Sprite" parent="."]
+material = SubResource( 2 )
+position = Vector2( 272, 32 )
+texture = ExtResource( 8 )
 
 [node name="Clock" parent="." instance=ExtResource( 4 )]
-position = Vector2( 160, 97 )
+position = Vector2( 160, 96 )
 __meta__ = {
 "_edit_group_": true
 }
@@ -38,18 +67,20 @@ editor_draw_drag_margin = false
 visible = false
 
 [node name="BirdSpawnerRight" parent="." instance=ExtResource( 5 )]
-position = Vector2( 352, 88 )
+position = Vector2( 352, 112 )
 bird_velocity = Vector2( -1, 0 )
 bird_speed = 50
 
 [node name="BirdSpawnerLeft" parent="." instance=ExtResource( 5 )]
-position = Vector2( -32, 88 )
+position = Vector2( -32, 72 )
 bird_velocity = Vector2( 1, 0 )
 bird_speed = 50
 
 [node name="BirdSpawnTimer" type="Timer" parent="."]
 wait_time = 10.0
 autostart = true
+
+[node name="UI" parent="." instance=ExtResource( 10 )]
 
 [connection signal="timeout" from="BirdSpawnTimer" to="." method="_on_BirdSpawnTimer_timeout"]
 

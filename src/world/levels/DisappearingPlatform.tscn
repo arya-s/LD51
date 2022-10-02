@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://static/hole.png" type="Texture" id=1]
+[ext_resource path="res://src/world/levels/DisappearingPlatform.gd" type="Script" id=2]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 12, 4 )
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 13, 5 )
+
+[node name="DisappearingPlatform" type="KinematicBody2D"]
+script = ExtResource( 2 )
+
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( 0, -8 )
+texture = ExtResource( 1 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 24, 8 )
+
+[node name="DespawnTimer" type="Timer" parent="."]
+wait_time = 1.4
+one_shot = true
+
+[node name="RespawnTimer" type="Timer" parent="."]
+wait_time = 10.0
+one_shot = true
+
+[node name="Collider" type="CollisionShape2D" parent="."]
+position = Vector2( 12, -4 )
+shape = SubResource( 1 )
+
+[node name="PlayerDetector" type="Area2D" parent="."]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerDetector"]
+position = Vector2( 12, -4 )
+shape = SubResource( 2 )
+
+[connection signal="timeout" from="DespawnTimer" to="." method="_on_DespawnTimer_timeout"]
+[connection signal="timeout" from="RespawnTimer" to="." method="_on_RespawnTimer_timeout"]
+[connection signal="body_entered" from="PlayerDetector" to="." method="_on_PlayerDetector_body_entered"]

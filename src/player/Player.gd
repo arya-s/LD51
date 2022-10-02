@@ -7,7 +7,7 @@ enum {
 }
 
 onready var camera = $Camera
-onready var label = $Label
+onready var animator = $AnimationPlayer
 
 # timers
 onready var coyote_jump_timer = $CoyoteJumpTimer
@@ -19,7 +19,6 @@ onready var bounce_var_jump_timer = $BounceVarJumpTimer
 
 onready var particles_spawn = $ParticlesSpawn
 onready var particles_wall_spawn = $ParticlesWallSpawn
-#var Particles = preload("res://src/player/Particles.tscn")
 var Particles = preload("res://src/player/ParticlesDust.tscn")
 var ParticlesWall = preload("res://src/player/ParticlesDustWall.tscn")
 
@@ -211,7 +210,6 @@ func wall_jump(direction: int) -> void:
 	create_dust()
 	
 func move(input_vector: Vector2) -> void:
-	var was_in_air = not is_on_floor()
 	was_on_floor = is_on_floor()
 	
 	motion = move_and_slide(motion, Vector2.UP)
@@ -247,7 +245,17 @@ func move(input_vector: Vector2) -> void:
 		if variable_jump_timer.time_left < variable_jump_timer.wait_time - CEILING_VARIABLE_JUMP:
 			variable_jump_timer.stop()
 
-func update_sprite(_input_vector: Vector2, delta: float) -> void:
+func update_sprite(input_vector: Vector2, delta: float) -> void:
+	if input_vector.x != 0:
+		animator.play("Run")
+	else:
+		animator.play("Idle")
+			
+	# air
+	if not collide_check(0, -1):
+		if motion.y <= JUMP_FORCE:
+			animator.play("Jump")
+	
 	# Tween sprite scale back to 1
 	sprite.scale.x = move_toward(sprite.scale.x, 1.0, 1.75 * delta)
 	sprite.scale.y = move_toward(sprite.scale.y, 1.0, 1.75 * delta)
@@ -289,4 +297,3 @@ func create_wall_dust(dir):
 	var particles = global.instance_scene_on_main(ParticlesWall, Vector2(global_position.x + (2 * dir), global_position.y + 4))
 	particles.scale.x = -1 if dir == LEFT else 1
 	particles.emitting = true
-	

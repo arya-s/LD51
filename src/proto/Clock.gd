@@ -9,7 +9,7 @@ var r = 0
 
 export(int) var f = 2
 export(int) var a = 72 - 32
-export(float) var offset = 0
+export(float) var offset = 0.0
 
 var t = 0
 
