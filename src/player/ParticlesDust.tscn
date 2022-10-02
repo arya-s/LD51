@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="Curve" id=2]
+min_value = -200.0
+max_value = 200.0
+_data = [ Vector2( 0.0643564, -200 ), 0.0, 0.0, 0, 0, Vector2( 1, 195.909 ), 0.0, 0.0, 0, 0 ]
+
+[node name="ParticlesDust" type="CPUParticles2D"]
+emitting = false
+amount = 80
+lifetime = 0.16
+one_shot = true
+fixed_fps = 24
+emission_shape = 2
+emission_rect_extents = Vector2( 3, 1 )
+direction = Vector2( 0, -1 )
+spread = 8.0
+gravity = Vector2( 0, 0 )
+initial_velocity = 20.0
+initial_velocity_random = 0.4
+linear_accel = 20.0
+linear_accel_random = 0.8
+linear_accel_curve = SubResource( 2 )

@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends AudioStreamPlayer
+
+var farts = [
+	preload(\"res://static/audio/fart_1.wav\"),
+	preload(\"res://static/audio/fart_2.wav\"),
+	preload(\"res://static/audio/fart_3.wav\"),
+	preload(\"res://static/audio/fart_4.wav\")
+]
+
+func fart():
+	stream = farts[randi() % farts.size()]
+	play()
+"
+
+[node name="Fart" type="AudioStreamPlayer"]
+script = SubResource( 1 )
