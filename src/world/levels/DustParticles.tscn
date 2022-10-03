@@ -4,6 +4,7 @@
 _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.163366, 1 ), 0.0, 0.0, 0, 0, Vector2( 0.816832, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
 
 [node name="CPUParticles2D" type="CPUParticles2D"]
+position = Vector2( 160, 90 )
 amount = 450
 lifetime = 10.0
 preprocess = 450.0

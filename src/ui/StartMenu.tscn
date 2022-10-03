@@ -1,7 +1,6 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://src/ui/StartMenu.gd" type="Script" id=1]
-[ext_resource path="res://src/world/levels/DustParticles.tscn" type="PackedScene" id=2]
 [ext_resource path="res://static/titlescreen.png" type="Texture" id=3]
 [ext_resource path="res://src/ui/default_theme.tres" type="Theme" id=4]
 [ext_resource path="res://static/note_icon.png" type="Texture" id=5]
@@ -55,9 +54,6 @@ hframes = 6
 autoplay = "Animate"
 anims/Animate = SubResource( 1 )
 anims/RESET = SubResource( 2 )
-
-[node name="CPUParticles2D" parent="." instance=ExtResource( 2 )]
-position = Vector2( 160, 90 )
 
 [node name="PlayButton" type="Button" parent="."]
 margin_left = 160.0

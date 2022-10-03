@@ -20,6 +20,7 @@ global="*res://src/global/Global.gd"
 stats="*res://src/stats/Stats.gd"
 controls="*res://src/global/Controls.gd"
 Bgm="*res://src/global/BGM.tscn"
+DustParticles="*res://src/world/levels/DustParticles.tscn"
 
 [display]
 
